@@ -5,7 +5,7 @@ SECTION "Header", ROM0[$100]
   ds $150 - @, 0; make room for header, fill with 0s
 
 SECTION "Graphics", ROM0
-NumberTileData: incbin "symbols.bin",0,576
+NumberTileData: incbin "symbols.bin",0,592
 
 EntryPoint:
   ; do not turn the LCD off outside of VBlank
@@ -21,7 +21,7 @@ WaitVBlank:
   ; copy tile data into VRAM
   ld de, NumberTileData
   ld hl, $9000
-  ld bc, 576 ; not sure about this
+  ld bc, 592 ; not sure about this
   call Memcopy
 
   ; copy the tile map
@@ -61,17 +61,110 @@ DrawArrow:
   cp a, 1
   jp z, .map1
 .map0: ; fall through
-  ld hl, $9823
+  ld hl, $9823 ; draw arrows
   ld a, 35
   ld [hl], a
   ld hl, $98A3
   ld a, 36
   ld [hl],a
+  ld hl, $9829 ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98A9
+  ld a, 19
+  ld [hl],a
+  ld hl, $982B ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98AB
+  ld a, 19
+  ld [hl],a
+  ld hl, $982E ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98AE
+  ld a, 19
+  ld [hl],a
   jp .end
-  .map1:
-  .map2:
-  .map3:
-  .end:
+.map1:
+  ld hl, $9829
+  ld a, 35
+  ld [hl], a
+  ld hl, $98A9
+  ld a, 36
+  ld [hl],a
+  ld hl, $9823 ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98A3
+  ld a, 19
+  ld [hl],a
+  ld hl, $982B ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98AB
+  ld a, 19
+  ld [hl],a
+  ld hl, $982E ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98AE
+  ld a, 19
+  ld [hl],a
+  jp .end
+.map2:
+  ld hl, $982B
+  ld a, 35
+  ld [hl], a
+  ld hl, $98AB
+  ld a, 36
+  ld [hl],a
+  ld hl, $9829 ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98A9
+  ld a, 19
+  ld [hl],a
+  ld hl, $9823 ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98A3
+  ld a, 19
+  ld [hl],a
+  ld hl, $982E ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98AE
+  ld a, 19
+  ld [hl],a
+  jp .end
+.map3:
+  ld hl, $982E
+  ld a, 35
+  ld [hl], a
+  ld hl, $98AE
+  ld a, 36
+  ld [hl],a
+  ld hl, $9829 ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98A9
+  ld a, 19
+  ld [hl],a
+  ld hl, $982B ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98AB
+  ld a, 19
+  ld [hl],a
+  ld hl, $9823 ; remove arrows
+  ld a, 19
+  ld [hl], a
+  ld hl, $98A3
+  ld a, 19
+  ld [hl],a
+  jp .end
+.end:
 
   call UpdateKeys
 
