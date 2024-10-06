@@ -1,0 +1,5 @@
+UpdateKeys
+if left or right, InputRead = true
+UpdateDigit
+Frame
+loop unless certain frame, then reset

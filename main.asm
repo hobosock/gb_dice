@@ -40,6 +40,8 @@ WaitVBlank:
 
 ; initialize global variables
   ld a, 0
+  ld [wFrameCounter], a
+  ld [wInputRead], a
   ld [wSelectedDigit], a
   ld [wModifierSign], a
   ld [wResult], a
@@ -50,6 +52,109 @@ WaitVBlank:
   ld [wDiceSides], a
 
 Main:
+  ; wait until it's not VBlank
+  ld a, [rLY]
+  cp 144
+  jp nc, Main
+WaitVBlank2:
+  ld a, [rLY]
+  cp 144
+  jp c, WaitVBlank2
+
+  ld a, [wInputRead]
+  cp a, 1
+  jp z, Frame
+  call UpdateKeys
+
+CheckLeft: ; see if left button is pressed
+  ld a, [wCurKeys]
+  and a, PADF_LEFT ; left button bit
+  jp z, CheckRight ; check next button if not pressed
+Left: ; fall through if pressed
+  ld a, 1
+  ld [wInputRead], a
+  ld a, [wSelectedDigit] ; current position
+  cp a, 0 ; compare with zero
+  jp z, .wrapLeft ; wrap around if at 0
+  dec a ; else decrement
+  jp UpdateDigit
+.wrapLeft:
+  ld a, 3
+  jp UpdateDigit
+CheckRight:
+  ld a, [wCurKeys]
+  and a, PADF_RIGHT
+  jp z, Frame ; restart loop if no key is pressed
+Right: ; fall through if pressed
+  ld a, 1
+  ld [wInputRead], a
+  ld a, [wSelectedDigit]
+  cp a, 3
+  jp z, .wrapRight
+  inc a
+  jp UpdateDigit
+.wrapRight:
+  ld a, 0
+  jp UpdateDigit
+
+UpdateDigit:
+  ld [wSelectedDigit], a
+
+ClearInput:
+  ld a, 0
+  ld [wCurKeys], a
+
+Frame:
+  ; increment frame counter
+  ld a, [wFrameCounter]
+  inc a
+  ld [wFrameCounter], a
+  cp a, 20 ; every 15 frames (quarter of a second)
+  jp nz, Main
+
+  ; reset the frame counter back to 0
+  ld a, 0
+  ld [wFrameCounter], a
+  ld [wInputRead], a
+  call DrawArrow
+
+  jp Main
+
+UpdateKeys:
+  ; poll half the controller
+  ld a, P1F_GET_BTN
+  call .onenibble
+  ld b, a ; B7-4 = 1; B3=0 = unpressed buttons
+
+  ; poll the other half
+  ld a, P1F_GET_DPAD
+  call .onenibble
+  swap a ; A3-0 = unpressed buttons; A7-4 = 1
+  xor a, b ; A = pressed buttons + directions
+  ld b, a ; B = pressed buttons + directions
+
+  ; and release the controller
+  ld a, P1F_GET_NONE
+  ldh [rP1], a
+
+  ; combine with previous wCurKeys to make wNewKeys
+  ld a, [wCurKeys]
+  xor a, b; A = keys that changed state
+  and a, b ; A = keys that changed to pressed
+  ld [wNewKeys], a
+  ld a, b
+  ld [wCurKeys], a
+  ret
+
+.onenibble
+  ldh [rP1], a ; switch the key matrix
+  call .knownret ; burn 10 cycles calling a known ret
+  ldh a, [rP1] ; ignore value while waiting for they key matrix to settle
+  ldh a, [rP1]
+  ldh a, [rP1] ; this read counts
+  or a, $F0 ; A7-4 = 1; A3-0 = unpressed keys
+.knownret
+  ret
 
   ; draw arrows in appropriate tile
 DrawArrow:
@@ -165,75 +270,6 @@ DrawArrow:
   ld [hl],a
   jp .end
 .end:
-
-  call UpdateKeys
-
-CheckLeft: ; see if left button is pressed
-  ld a, [wCurKeys]
-  and a, PADF_LEFT ; left button bit
-  jp z, CheckRight ; check next button if not pressed
-Left: ; fall through if pressed
-  ld a, [wSelectedDigit] ; current position
-  cp a, 0 ; compare with zero
-  jp z, .wrapLeft ; wrap around if at 0
-  dec a ; else decrement
-  jp UpdateDigit
-.wrapLeft:
-  ld a, 3
-  jp UpdateDigit
-CheckRight:
-  ld a, [wCurKeys]
-  and a, PADF_RIGHT
-  jp z, Main ; restart loop if no key is pressed
-Right: ; fall through if pressed
-  ld a, [wSelectedDigit]
-  cp a, 3
-  jp z, .wrapRight
-  inc a
-  jp UpdateDigit
-.wrapRight:
-  ld a, 0
-  jp UpdateDigit
-
-UpdateDigit:
-  ld [wSelectedDigit], a
-
-  jp Main
-
-UpdateKeys:
-  ; poll half the controller
-  ld a, P1F_GET_BTN
-  call .onenibble
-  ld b, a ; B7-4 = 1; B3=0 = unpressed buttons
-
-  ; poll the other half
-  ld a, P1F_GET_DPAD
-  call .onenibble
-  swap a ; A3-0 = unpressed buttons; A7-4 = 1
-  xor a, b ; A = pressed buttons + directions
-  ld b, a ; B = pressed buttons + directions
-
-  ; and release the controller
-  ld a, P1F_GET_NONE
-  ldh [rP1], a
-
-  ; combine with previous wCurKeys to make wNewKeys
-  ld a, [wCurKeys]
-  xor a, b; A = keys that changed state
-  and a, b ; A = keys that changed to pressed
-  ld [wNewKeys], a
-  ld a, b
-  ld [wCurKeys], a
-  ret
-
-.onenibble
-  ldh [rP1], a ; switch the key matrix
-  call .knownret ; burn 10 cycles calling a known ret
-  ldh a, [rP1] ; ignore value while waiting for they key matrix to settle
-  ldh a, [rP1]
-  ldh a, [rP1] ; this read counts
-  or a, $F0 ; A7-4 = 1; A3-0 = unpressed keys
-.knownret
   ret
 
 ; copy bytes from one area to another
@@ -288,6 +324,8 @@ TilemapEnd:
 SECTION "Input Variables", WRAM0
 wCurKeys: db ; reserve single byte
 wNewKeys: db ; all buttons contained in single byte
+wFrameCounter: db
+wInputRead: db ; stops reading input for a while
 
 SECTION "UX Data", WRAM0
 wSelectedDigit: db
