@@ -195,11 +195,11 @@ IncreaseDigit:
   ld a, [wModifierSign]
   cp a, 0
   jp nz, .negative
-  inc a
+  ld a, 1
   ld [wModifierSign], a
   jp .knownret
 .negative:
-  dec a
+  ld a, 0
   ld [wModifierSign], a
   jp .knownret
 .modifier:
@@ -232,11 +232,11 @@ DecreaseDigit:
   ld a, [wModifierSign]
   cp a, 0
   jp nz, .negative
-  dec a
+  ld a, 1
   ld [wModifierSign], a
   jp .knownret
 .negative:
-  inc a
+  ld a, 0
   ld [wModifierSign], a
   jp .knownret
 .modifier:
