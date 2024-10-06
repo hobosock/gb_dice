@@ -84,7 +84,7 @@ Left: ; fall through if pressed
 CheckRight:
   ld a, [wCurKeys]
   and a, PADF_RIGHT
-  jp z, Frame ; restart loop if no key is pressed
+  jp z, CheckUp ; restart loop if no key is pressed
 Right: ; fall through if pressed
   ld a, 1
   ld [wInputRead], a
@@ -96,6 +96,22 @@ Right: ; fall through if pressed
 .wrapRight:
   ld a, 0
   jp UpdateDigit
+CheckUp:
+  ld a, [wCurKeys] ; TODO: do I need to load if falling through?
+  and a, PADF_UP
+  jp z, CheckDown
+Up:
+  ld a, 1
+  ld [wInputRead], a
+  ld a, [wSelectedDigit] ; see which digit to change
+  call IncreaseDigit
+  jp ClearInput
+CheckDown:
+  ld a, [wCurKeys]
+  and a, PADF_DOWN
+  jp z, ClearInput
+  ; call decrement function
+  jp ClearInput
 
 UpdateDigit:
   ld [wSelectedDigit], a
@@ -156,7 +172,44 @@ UpdateKeys:
 .knownret
   ret
 
-  ; draw arrows in appropriate tile
+; identify correct digit to update and increase it
+; no need to worry about wrapping, CPU handles that
+IncreaseDigit:
+  ld a, [wSelectedDigit]
+  cp a, 0 ; number of dice
+  jp nz, .dicesides
+  ld a, [wNumberDice]
+  inc a
+  ld [wNumberDice], a
+  jp .knownret
+.dicesides: ; TODO: only increase to standard dice sizes
+  cp a, 1 ; dice sides
+  jp nz, .sign
+  ld a, [wDiceSides]
+  inc a
+  ld [wDiceSides], a
+  jp .knownret
+.sign:
+  cp a, 2 ; modifier
+  jp nz, .modifier
+  ld a, [wModifierSign]
+  cp a, 0
+  jp nz, .negative
+  inc a
+  ld [wModifierSign], a
+  jp .knownret
+.negative
+  dec a
+  ld [wModifierSign], a
+  jp .knownret
+.modifier:
+  ld a, [wModifier]
+  inc a
+  ld [wModifier], a
+.knownret:
+  ret
+
+; draw arrows in appropriate tile
 DrawArrow:
   ld a, [wSelectedDigit]
   cp a, 3
