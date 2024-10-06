@@ -110,7 +110,7 @@ CheckDown:
   ld a, [wCurKeys]
   and a, PADF_DOWN
   jp z, ClearInput
-  ; call decrement function
+  call DecreaseDigit
   jp ClearInput
 
 UpdateDigit:
@@ -198,13 +198,50 @@ IncreaseDigit:
   inc a
   ld [wModifierSign], a
   jp .knownret
-.negative
+.negative:
   dec a
   ld [wModifierSign], a
   jp .knownret
 .modifier:
   ld a, [wModifier]
   inc a
+  ld [wModifier], a
+.knownret:
+  ret
+
+; identify correct digit to update and decrease it
+; no need to worry about wrapping
+DecreaseDigit:
+  ld a, [wSelectedDigit]
+  cp a, 0 ; number of dice
+  jp nz, .dicesides
+  ld a, [wNumberDice]
+  dec a
+  ld [wNumberDice], a
+  jp .knownret
+.dicesides:
+  cp a, 1 ; dice sides
+  jp nz, .sign
+  ld a, [wDiceSides]
+  dec a
+  ld [wDiceSides], a
+  jp .knownret
+.sign:
+  cp a, 2 ; modifier
+  jp nz, .modifier
+  ld a, [wModifierSign]
+  cp a, 0
+  jp nz, .negative
+  dec a
+  ld [wModifierSign], a
+  jp .knownret
+.negative:
+  inc a
+  ld [wModifierSign], a
+  jp .knownret
+.modifier:
+  ld a, [wModifier]
+  dec a
   ld [wModifier], a
 .knownret:
   ret
