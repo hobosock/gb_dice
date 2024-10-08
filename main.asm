@@ -132,7 +132,17 @@ Frame:
   ld a, 0
   ld [wFrameCounter], a
   ld [wInputRead], a
+
+  ; rendering stuff
   call DrawArrow
+  ld a, [wNumberDice] ; draw first two digits
+  call GetDigits
+  ld hl, $9841 ; top left of tens place of number of dice
+  ld a, [wTenPlace]
+  call DigitDraw
+  ld hl, $9843 ; you get it
+  ld a, [wOnePlace]
+  call DigitDraw
 
   jp Main
 
@@ -261,25 +271,25 @@ DrawArrow:
   ld [hl], a
   ld hl, $98A3
   ld a, 36
-  ld [hl],a
+  ld [hl], a
   ld hl, $9829 ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98A9
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   ld hl, $982B ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98AB
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   ld hl, $982E ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98AE
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   jp .end
 .map1:
   ld hl, $9829
@@ -287,25 +297,25 @@ DrawArrow:
   ld [hl], a
   ld hl, $98A9
   ld a, 36
-  ld [hl],a
+  ld [hl], a
   ld hl, $9823 ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98A3
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   ld hl, $982B ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98AB
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   ld hl, $982E ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98AE
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   jp .end
 .map2:
   ld hl, $982B
@@ -313,25 +323,25 @@ DrawArrow:
   ld [hl], a
   ld hl, $98AB
   ld a, 36
-  ld [hl],a
+  ld [hl], a
   ld hl, $9829 ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98A9
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   ld hl, $9823 ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98A3
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   ld hl, $982E ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98AE
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   jp .end
 .map3:
   ld hl, $982E
@@ -339,27 +349,191 @@ DrawArrow:
   ld [hl], a
   ld hl, $98AE
   ld a, 36
-  ld [hl],a
+  ld [hl], a
   ld hl, $9829 ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98A9
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   ld hl, $982B ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98AB
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   ld hl, $9823 ; remove arrows
   ld a, 19
   ld [hl], a
   ld hl, $98A3
   ld a, 19
-  ld [hl],a
+  ld [hl], a
   jp .end
 .end:
+  ret
+
+; NOTE: could do this cleaner by reserving 6 bytes for digit tiles
+; then just write the appropriate values to those bytes for each number
+; and only write out the address stuff once
+
+; draws a 3x2 tile representation of a number 0-9
+; @param hl: top left tile address
+; @param a: number to draw
+DigitDraw:
+  cp a, 0
+  jp nz, .one ; if b == 0, etc.
+  ld [hl], 0 ; first tile
+  inc hl
+  ld [hl], 1 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 2
+  inc hl
+  ld [hl], 3
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 4
+  inc hl
+  ld [hl], 5
+  jp .knownret
+.one:
+  cp a, 1
+  jp nz, .two ; if b == 0, etc.
+  ld [hli], 19 ; first tile, automatically increment
+  ld [hld], 6 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 19
+  ld [hld], 3
+  add hl, $20
+  ld [hli], 19
+  ld [hli], 7
+  jp .knownret
+.two:
+  cp a, 2
+  jp nz, .three ; if b == 0, etc.
+  ld [hli], 8 ; first tile, automatically increment
+  ld [hld], 1 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 9
+  ld [hld], 10
+  add hl, $20
+  ld [hli], 4
+  ld [hli], 11
+  jp .knownret
+.three:
+  cp a, 3
+  jp nz, .four ; if b == 0, etc.
+  ld [hli],  8; first tile, automatically increment
+  ld [hld], 1 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 14
+  ld [hld], 18
+  add hl, $20
+  ld [hli], 22
+  ld [hli], 5
+  jp .knownret
+.four:
+  cp a, 4
+  jp nz, .five ; if b == 0, etc.
+  ld [hli], 15 ; first tile, automatically increment
+  ld [hld], 16 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 17
+  ld [hld], 18
+  add hl, $20
+  ld [hli], 19
+  ld [hli], 6
+  jp .knownret
+.five:
+  cp a, 5
+  jp nz, .six ; if b == 0, etc.
+  ld [hli], 0 ; first tile, automatically increment
+  ld [hld], 20 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 17
+  ld [hld], 21
+  add hl, $20
+  ld [hli], 22
+  ld [hli], 5
+  jp .knownret
+.six:
+  cp a, 6
+  jp nz, .seven ; if b == 0, etc.
+  ld [hli], 0 ; first tile, automatically increment
+  ld [hld], 20 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 13
+  ld [hld], 21
+  add hl, $20
+  ld [hli], 4
+  ld [hli], 5
+  jp .knownret
+.seven:
+  cp a, 7
+  jp nz, .eight ; if b == 0, etc.
+  ld [hli], 8 ; first tile, automatically increment
+  ld [hld], 1 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 19
+  ld [hld], 3
+  add hl, $20
+  ld [hli], 19
+  ld [hli], 7
+  jp .knownret
+.eight:
+  cp a, 8
+  jp nz, .nine ; if b == 0, etc.
+  ld [hli], 0 ; first tile, automatically increment
+  ld [hld], 1 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 13
+  ld [hld], 18
+  add hl, $20
+  ld [hli], 4
+  ld [hli], 5
+  jp .knownret
+.nine: ; don't need to check, should be 9 if you get here
+  ld [hli], 0 ; first tile, automatically increment
+  ld [hld], 1 ; back too top left
+  add hl, $20 ; shift down a row
+  ld [hli], 17
+  ld [hld], 18
+  add hl, $20
+  ld [hli], 22
+  ld [hli], 19
+.knownret:
+  ret
+
+; get the ones/tens/hundreds place digit
+; @param b: original
+; @output: wOnePlace, wTenPlace, wHundredPlace
+GetDigits:
+  ld a, b ; preserve original value
+  ld c, 0 ; counter
+.count100:
+  sub a, 100 ; subtract 100
+  inc c
+  jp nc, .count100 ; if carry flag not set, repeat
+  dec c ; adjust for 0/1/2 etc.
+  ld [wHundredPlace], c ; store value
+  add a, 100 ; should be left with just 10s and 1s
+  ld c, 0 ; reset counter
+.count10:
+  sub a, 10
+  inc c
+  jp nc, .count10
+  dec c
+  ld [wTenPlace], c
+  add a, 10
+  ld c, 0
+.count1:
+  sub a, 1 ; NOTE: using sub instead of dec to get carry flag?
+  inc c
+  jp nc, .count1
+  dec c
+  ld [wOnePlace], c
   ret
 
 ; copy bytes from one area to another
@@ -416,6 +590,9 @@ wCurKeys: db ; reserve single byte
 wNewKeys: db ; all buttons contained in single byte
 wFrameCounter: db
 wInputRead: db ; stops reading input for a while
+wHundredPlace: db ; 3rd digit of number being drawn
+wTenPlace: db ; 2nd digit
+wOnePlace: db ;1st digit
 
 SECTION "UX Data", WRAM0
 wSelectedDigit: db
