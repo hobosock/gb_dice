@@ -66,6 +66,12 @@ WaitVBlank2:
   jp z, Frame
   call UpdateKeys
 
+CheckA:
+  ld a, [wCurKeys]
+  and a, PADF_A
+  jp z, CheckLeft
+APress:
+  call rand
 CheckLeft: ; see if left button is pressed
   ld a, [wCurKeys]
   and a, PADF_LEFT ; left button bit
@@ -165,6 +171,9 @@ Frame:
   ld hl, $984E
   ld a, [wOnePlace]
   call DigitDraw
+
+  ; draw plus/minus
+  call DrawSign
 
   jp Main
 
@@ -275,6 +284,22 @@ DecreaseDigit:
   ld a, [wModifier]
   dec a
   ld [wModifier], a
+.knownret:
+  ret
+
+; draw plus or minus sign
+DrawSign:
+  ld a, [wModifierSign]
+  ld hl, $986B
+  cp a, 1
+  jp c, .plus
+  ; draw minus
+  ld [hl], 34
+  jp .knownret
+.plus:
+  ; draw plus
+  ld [hl], 33
+  jp .knownret
 .knownret:
   ret
 
@@ -693,3 +718,30 @@ wDiceSides: db
 wModifierSign: db
 wModifier: db
 wResult: db
+
+SECTION "MathVariables", WRAM0
+randstate:: ds 4
+
+SECTION "Math", ROM0
+
+;; From: https://github.com/pinobatch/libbet/blob/master/src/rand.z80#L34-L54
+; Generates a pseudorandom 16-bit integer in BC
+; using the LCG formula from cc65 rand():
+; x[i + 1] = x[i] * 0x01010101 + 0xB3B3B3B3
+; @return A=B=state bits 31-24 (which have the best entropy),
+; C=state bits 23-16, HL trashed
+rand::
+  ; Add 0xB3 then multiply by 0x01010101
+  ld hl, randstate+0
+  ld a, [hl]
+  add a, $B3
+  ld [hl+], a
+  adc a, [hl]
+  ld [hl+], a
+  adc a, [hl]
+  ld [hl+], a
+  ld c, a
+  adc a, [hl]
+  ld [hl], a
+  ld b, a
+  ret
