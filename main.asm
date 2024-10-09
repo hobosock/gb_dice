@@ -403,7 +403,7 @@ DigitDraw:
   jp nz, .two ; if b == 0, etc.
   ld [hl], 19 ; first tile
   inc hl
-  ld [hl], 6 ; back too top left
+  ld [hl], 7 ; back too top left
   dec hl
   ld de, $20
   add hl, de ; shift down a row
@@ -415,7 +415,7 @@ DigitDraw:
   add hl, de
   ld [hl], 19
   inc hl
-  ld [hl], 7
+  ld [hl], 6
   jp .knownret
 .two:
   cp a, 2
@@ -529,7 +529,7 @@ DigitDraw:
   add hl, de
   ld [hl], 19
   inc hl
-  ld [hl], 7
+  ld [hl], 6
   jp .knownret
 .eight:
   cp a, 8
@@ -565,7 +565,7 @@ DigitDraw:
   add hl, de
   ld [hl], 22
   inc hl
-  ld [hl], 19
+  ld [hl], 5
   jp .knownret
 .knownret:
   ret
