@@ -401,108 +401,172 @@ DigitDraw:
 .one:
   cp a, 1
   jp nz, .two ; if b == 0, etc.
-  ld [hli], 19 ; first tile, automatically increment
-  ld [hld], 6 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 19
-  ld [hld], 3
-  add hl, $20
-  ld [hli], 19
-  ld [hli], 7
+  ld [hl], 19 ; first tile
+  inc hl
+  ld [hl], 6 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 19
+  inc hl
+  ld [hl], 3
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 19
+  inc hl
+  ld [hl], 7
   jp .knownret
 .two:
   cp a, 2
   jp nz, .three ; if b == 0, etc.
-  ld [hli], 8 ; first tile, automatically increment
-  ld [hld], 1 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 9
-  ld [hld], 10
-  add hl, $20
-  ld [hli], 4
-  ld [hli], 11
+  ld [hl], 8 ; first tile
+  inc hl
+  ld [hl], 1 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 9
+  inc hl
+  ld [hl], 10
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 4
+  inc hl
+  ld [hl], 11
   jp .knownret
 .three:
   cp a, 3
   jp nz, .four ; if b == 0, etc.
-  ld [hli],  8; first tile, automatically increment
-  ld [hld], 1 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 14
-  ld [hld], 18
-  add hl, $20
-  ld [hli], 22
-  ld [hli], 5
+  ld [hl], 8 ; first tile
+  inc hl
+  ld [hl], 1 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 14
+  inc hl
+  ld [hl], 18
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 22
+  inc hl
+  ld [hl], 5
   jp .knownret
 .four:
   cp a, 4
   jp nz, .five ; if b == 0, etc.
-  ld [hli], 15 ; first tile, automatically increment
-  ld [hld], 16 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 17
-  ld [hld], 18
-  add hl, $20
-  ld [hli], 19
-  ld [hli], 6
+  ld [hl], 15 ; first tile
+  inc hl
+  ld [hl], 16 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 17
+  inc hl
+  ld [hl], 18
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 19
+  inc hl
+  ld [hl], 6
   jp .knownret
 .five:
   cp a, 5
   jp nz, .six ; if b == 0, etc.
-  ld [hli], 0 ; first tile, automatically increment
-  ld [hld], 20 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 17
-  ld [hld], 21
-  add hl, $20
-  ld [hli], 22
-  ld [hli], 5
+  ld [hl], 0 ; first tile
+  inc hl
+  ld [hl], 20 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 17
+  inc hl
+  ld [hl], 21
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 22
+  inc hl
+  ld [hl], 5
   jp .knownret
 .six:
   cp a, 6
   jp nz, .seven ; if b == 0, etc.
-  ld [hli], 0 ; first tile, automatically increment
-  ld [hld], 20 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 13
-  ld [hld], 21
-  add hl, $20
-  ld [hli], 4
-  ld [hli], 5
+  ld [hl], 0 ; first tile
+  inc hl
+  ld [hl], 20 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 13
+  inc hl
+  ld [hl], 21
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 4
+  inc hl
+  ld [hl], 5
   jp .knownret
 .seven:
   cp a, 7
   jp nz, .eight ; if b == 0, etc.
-  ld [hli], 8 ; first tile, automatically increment
-  ld [hld], 1 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 19
-  ld [hld], 3
-  add hl, $20
-  ld [hli], 19
-  ld [hli], 7
+  ld [hl], 8 ; first tile
+  inc hl
+  ld [hl], 1 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 19
+  inc hl
+  ld [hl], 3
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 19
+  inc hl
+  ld [hl], 7
   jp .knownret
 .eight:
   cp a, 8
   jp nz, .nine ; if b == 0, etc.
-  ld [hli], 0 ; first tile, automatically increment
-  ld [hld], 1 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 13
-  ld [hld], 18
-  add hl, $20
-  ld [hli], 4
-  ld [hli], 5
+  ld [hl], 0 ; first tile
+  inc hl
+  ld [hl], 1 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 13
+  inc hl
+  ld [hl], 18
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 4
+  inc hl
+  ld [hl], 5
   jp .knownret
 .nine: ; don't need to check, should be 9 if you get here
-  ld [hli], 0 ; first tile, automatically increment
-  ld [hld], 1 ; back too top left
-  add hl, $20 ; shift down a row
-  ld [hli], 17
-  ld [hld], 18
-  add hl, $20
-  ld [hli], 22
-  ld [hli], 19
+  ld [hl], 0 ; first tile
+  inc hl
+  ld [hl], 1 ; back too top left
+  dec hl
+  ld de, $20
+  add hl, de ; shift down a row
+  ld [hl], 17
+  inc hl
+  ld [hl], 18
+  dec hl
+  ld de, $20
+  add hl, de
+  ld [hl], 22
+  inc hl
+  ld [hl], 19
+  jp .knownret
 .knownret:
   ret
 
@@ -510,14 +574,16 @@ DigitDraw:
 ; @param b: original
 ; @output: wOnePlace, wTenPlace, wHundredPlace
 GetDigits:
-  ld a, b ; preserve original value
   ld c, 0 ; counter
 .count100:
   sub a, 100 ; subtract 100
   inc c
   jp nc, .count100 ; if carry flag not set, repeat
   dec c ; adjust for 0/1/2 etc.
-  ld [wHundredPlace], c ; store value
+  ld d, a
+  ld a, c
+  ld [wHundredPlace], a ; store value
+  ld a, d
   add a, 100 ; should be left with just 10s and 1s
   ld c, 0 ; reset counter
 .count10:
@@ -525,7 +591,10 @@ GetDigits:
   inc c
   jp nc, .count10
   dec c
-  ld [wTenPlace], c
+  ld d, a
+  ld a, c
+  ld [wTenPlace], a
+  ld a, d
   add a, 10
   ld c, 0
 .count1:
@@ -533,7 +602,8 @@ GetDigits:
   inc c
   jp nc, .count1
   dec c
-  ld [wOnePlace], c
+  ld a, c
+  ld [wOnePlace], a
   ret
 
 ; copy bytes from one area to another
