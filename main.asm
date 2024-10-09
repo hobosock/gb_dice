@@ -135,12 +135,34 @@ Frame:
 
   ; rendering stuff
   call DrawArrow
-  ld a, [wNumberDice] ; draw first two digits
+
+  ; draw number of dice
+  ld a, [wNumberDice]
   call GetDigits
   ld hl, $9841 ; top left of tens place of number of dice
   ld a, [wTenPlace]
   call DigitDraw
   ld hl, $9843 ; you get it
+  ld a, [wOnePlace]
+  call DigitDraw
+
+  ; draw dice sides
+  ld a, [wDiceSides]
+  call GetDigits
+  ld hl, $9847
+  ld a, [wTenPlace]
+  call DigitDraw
+  ld hl, $9849
+  ld a, [wOnePlace]
+  call DigitDraw
+
+  ; draw modifier
+  ld a, [wModifier]
+  call GetDigits
+  ld hl, $984C
+  ld a, [wTenPlace]
+  call DigitDraw
+  ld hl, $984E
   ld a, [wOnePlace]
   call DigitDraw
 
