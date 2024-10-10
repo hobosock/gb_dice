@@ -69,9 +69,21 @@ WaitVBlank2:
 CheckA:
   ld a, [wCurKeys]
   and a, PADF_A
-  jp z, CheckLeft
+  jp z, CheckB
 APress:
-  call rand
+  ; on A press, wipe previous total
+  ld a, 0
+  ld [wResult], a
+  call RollLogic
+  jp ClearInput
+CheckB:
+  ld a, [wCurKeys]
+  and a, PADF_B
+  jp z, CheckLeft
+BPress:
+  ; on B press, keep previous total (sneak attack, etc.)
+  call RollLogic
+  jp ClearInput
 CheckLeft: ; see if left button is pressed
   ld a, [wCurKeys]
   and a, PADF_LEFT ; left button bit
@@ -174,6 +186,19 @@ Frame:
 
   ; draw plus/minus
   call DrawSign
+
+  ; draw result
+  ld a, [wResult]
+  call GetDigits
+  ld hl, $996C
+  ld a, [wHundredPlace]
+  call DigitDraw
+  ld hl, $996E
+  ld a, [wTenPlace]
+  call DigitDraw
+  ld hl, $9970
+  ld a, [wOnePlace]
+  call DigitDraw
 
   jp Main
 
@@ -744,4 +769,88 @@ rand::
   adc a, [hl]
   ld [hl], a
   ld b, a
+  ret
+
+; generates 4 random numbers
+; subtracts dice side number until carry flag - essentially remainder
+; adds 1 to remainder to get dice roll
+; if more than 4 rolls are needed, generates 4 more
+RollLogic:
+  ; NOTE: don't clear previous result in this function
+  ; NOTE: also, bound numbers somewhere else
+  call rand ; generate numbers
+  ld c, 0 ; roll counter
+  ld a, [wNumberDice]
+  ld d, a ; number of dice
+.getrandom:
+  call PickRand ; get a random number
+  ld e, a ; store off random
+  ld a, [wDiceSides]
+  ld b, a ; sides
+  ld a, e ; get random back
+.remainder:
+  sub a, b ; subtract number of sides
+  jp nc, .remainder ; if not rollover, repeat
+  add a, b ; roll back to remainder - this is die result - 1!
+  inc a ; moves from 0 - (n-1) to 1 - n
+  ld e, a
+  ld a, [wResult]
+  add a, e ; add to die result to total
+  ld [wResult], a ; put back in memory
+  dec d ; mark off a roll
+  jp nz, .getrandom ; repeat process for next die if necessary
+  ; otherwise add modifier and return
+  ld a, [wModifierSign]
+  cp a, 0 ; bonus
+  jp nz, .penalty
+  ld a, [wModifier]
+  ld b, a
+  ld a, [wResult]
+  add a, b
+  ld [wResult], a
+  jp .knownret
+.penalty:
+  ld a, [wModifier]
+  ld b, a
+  ld a, [wResult]
+  sub a, b
+  ld [wResult], a
+.knownret:
+  ret
+
+
+; picks which of 4 random numbers to use
+; @param: c = numbers already used/counter from RollLogic
+; @output: a = selected random number
+PickRand:
+  ld a, c
+.zero:
+  cp a, 0
+  jp nz, .one
+  ld a, [randstate]
+  jp .knownret
+.one:
+  cp a, 1
+  jp nz, .two
+  ld a, [randstate + 1]
+  jp .knownret
+.two:
+  cp a, 2
+  jp nz, .three
+  ld a, [randstate + 2]
+  jp .knownret
+.three:
+  cp a, 3
+  jp nz, .regen
+  ld a, [randstate + 3]
+  jp .knownret
+.regen:
+  call rand ; make new numbers
+  ld a, 0 ; reset counter
+.knownret:
+  ld b, a ; move random number
+  ld a, c ; get counter back
+  inc a ; increment counter
+  ld c, a
+  ld a, b ; put random number back in a
   ret
