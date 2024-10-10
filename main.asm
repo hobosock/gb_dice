@@ -61,13 +61,13 @@ WaitVBlank2:
   cp 144
   jp c, WaitVBlank2
 
-  ld a, [wInputRead]
-  cp a, 1
-  jp z, Frame
+  ;ld a, [wInputRead]
+  ;cp a, 1
+  ;jp z, Frame
   call UpdateKeys
 
 CheckA:
-  ld a, [wCurKeys]
+  ld a, [wNewKeys]
   and a, PADF_A
   jp z, CheckB
 APress:
@@ -77,7 +77,7 @@ APress:
   call RollLogic
   jp ClearInput
 CheckB:
-  ld a, [wCurKeys]
+  ld a, [wNewKeys]
   and a, PADF_B
   jp z, CheckLeft
 BPress:
@@ -85,7 +85,7 @@ BPress:
   call RollLogic
   jp ClearInput
 CheckLeft: ; see if left button is pressed
-  ld a, [wCurKeys]
+  ld a, [wNewKeys]
   and a, PADF_LEFT ; left button bit
   jp z, CheckRight ; check next button if not pressed
 Left: ; fall through if pressed
@@ -100,7 +100,7 @@ Left: ; fall through if pressed
   ld a, 3
   jp UpdateDigit
 CheckRight:
-  ld a, [wCurKeys]
+  ld a, [wNewKeys]
   and a, PADF_RIGHT
   jp z, CheckUp ; restart loop if no key is pressed
 Right: ; fall through if pressed
@@ -115,7 +115,7 @@ Right: ; fall through if pressed
   ld a, 0
   jp UpdateDigit
 CheckUp:
-  ld a, [wCurKeys] ; TODO: do I need to load if falling through?
+  ld a, [wNewKeys]
   and a, PADF_UP
   jp z, CheckDown
 Up:
@@ -125,7 +125,7 @@ Up:
   call IncreaseDigit
   jp ClearInput
 CheckDown:
-  ld a, [wCurKeys]
+  ld a, [wNewKeys]
   and a, PADF_DOWN
   jp z, ClearInput
   call DecreaseDigit
@@ -135,21 +135,21 @@ UpdateDigit:
   ld [wSelectedDigit], a
 
 ClearInput:
-  ld a, 0
-  ld [wCurKeys], a
+  ;ld a, 0
+  ;ld [wCurKeys], a
 
 Frame:
   ; increment frame counter
   ld a, [wFrameCounter]
   inc a
   ld [wFrameCounter], a
-  cp a, 20 ; every 15 frames (quarter of a second)
-  jp nz, Main
+  ;cp a, 20 ; every 15 frames (quarter of a second)
+  ;jp nz, Main
 
   ; reset the frame counter back to 0
-  ld a, 0
-  ld [wFrameCounter], a
-  ld [wInputRead], a
+  ;ld a, 0
+  ;ld [wFrameCounter], a
+  ;ld [wInputRead], a
 
   ; rendering stuff
   call DrawArrow
