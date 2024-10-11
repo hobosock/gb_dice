@@ -40,6 +40,14 @@ WaitVBlank:
 
 ; initialize global variables
   ld a, 0
+  ld [wChangeDraw], a
+  ld [wSDDraw], a
+  ld [wNDDraw], a
+  ld [wDSDraw], a
+  ld [wMSDraw], a
+  ld [wMDraw], a
+  ld [wArrowDraw], a
+  ld [wResultDraw], a
   ld [wFrameCounter], a
   ld [wInputRead], a
   ld [wSelectedDigit], a
@@ -61,9 +69,6 @@ WaitVBlank2:
   cp 144
   jp c, WaitVBlank2
 
-  ;ld a, [wInputRead]
-  ;cp a, 1
-  ;jp z, Frame
   call UpdateKeys
 
 CheckA:
@@ -74,23 +79,30 @@ APress:
   ; on A press, wipe previous total
   ld a, 0
   ld [wResult], a
+  ld a, 1 ; mark parts of screen for draw
+  ld [wChangeDraw], a
+  ld [wResultDraw], a
   call RollLogic
-  jp ClearInput
+  jp Frame
 CheckB:
   ld a, [wNewKeys]
   and a, PADF_B
   jp z, CheckLeft
 BPress:
   ; on B press, keep previous total (sneak attack, etc.)
+  ld a, 1 ; mark parts of screen for draw
+  ld [wChangeDraw], a
+  ld [wResultDraw], a
   call RollLogic
-  jp ClearInput
+  jp Frame
 CheckLeft: ; see if left button is pressed
   ld a, [wNewKeys]
   and a, PADF_LEFT ; left button bit
   jp z, CheckRight ; check next button if not pressed
 Left: ; fall through if pressed
-  ld a, 1
-  ld [wInputRead], a
+  ld a, 1 ; mark parts of screen for draw
+  ld [wChangeDraw], a
+  ld [wArrowDraw], a
   ld a, [wSelectedDigit] ; current position
   cp a, 0 ; compare with zero
   jp z, .wrapLeft ; wrap around if at 0
@@ -104,8 +116,9 @@ CheckRight:
   and a, PADF_RIGHT
   jp z, CheckUp ; restart loop if no key is pressed
 Right: ; fall through if pressed
-  ld a, 1
-  ld [wInputRead], a
+  ld a, 1 ; mark parts of screen for draw
+  ld [wChangeDraw], a
+  ld [wArrowDraw], a
   ld a, [wSelectedDigit]
   cp a, 3
   jp z, .wrapRight
@@ -119,24 +132,21 @@ CheckUp:
   and a, PADF_UP
   jp z, CheckDown
 Up:
-  ld a, 1
-  ld [wInputRead], a
+  call MarkForRedraw
   ld a, [wSelectedDigit] ; see which digit to change
   call IncreaseDigit
-  jp ClearInput
+  jp Frame
 CheckDown:
   ld a, [wNewKeys]
   and a, PADF_DOWN
-  jp z, ClearInput
+  jp z, Frame
+  call MarkForRedraw
+  ld a, [wSelectedDigit]
   call DecreaseDigit
-  jp ClearInput
+  jp Frame
 
 UpdateDigit:
   ld [wSelectedDigit], a
-
-ClearInput:
-  ;ld a, 0
-  ;ld [wCurKeys], a
 
 Frame:
   ; increment frame counter
@@ -145,15 +155,33 @@ Frame:
   ld [wFrameCounter], a
   ;cp a, 20 ; every 15 frames (quarter of a second)
   ;jp nz, Main
-
   ; reset the frame counter back to 0
   ;ld a, 0
   ;ld [wFrameCounter], a
-  ;ld [wInputRead], a
+
+  ; if no change, no need to redraw!
+  ld a, [wChangeDraw]
+  cp a, 1
+  jp nz, Main
+
+  ; reset
+  ld a, 0
+  ld [wChangeDraw], a
 
   ; rendering stuff
+  ld a, [wArrowDraw]
+  cp a, 1
+  jp nz, DrawNumberDice
+  ld a, 0
+  ld [wArrowDraw], a
   call DrawArrow
 
+DrawNumberDice:
+  ld a, [wNDDraw]
+  cp a, 1
+  jp nz, DrawDiceSides
+  ld a, 0
+  ld [wNDDraw], a ; reset
   ; draw number of dice
   ld a, [wNumberDice]
   call GetDigits
@@ -164,6 +192,12 @@ Frame:
   ld a, [wOnePlace]
   call DigitDraw
 
+DrawDiceSides:
+  ld a, [wDSDraw]
+  cp a, 1
+  jp nz, DrawModifier
+  ld a, 0
+  ld [wDSDraw], a
   ; draw dice sides
   ld a, [wDiceSides]
   call GetDigits
@@ -174,6 +208,12 @@ Frame:
   ld a, [wOnePlace]
   call DigitDraw
 
+DrawModifier:
+  ld a, [wMDraw]
+  cp a, 1
+  jp nz, DrawModifierSign
+  ld a, 0
+  ld [wMDraw], a
   ; draw modifier
   ld a, [wModifier]
   call GetDigits
@@ -184,9 +224,21 @@ Frame:
   ld a, [wOnePlace]
   call DigitDraw
 
+DrawModifierSign:
+  ld a, [wMSDraw]
+  cp a, 1
+  jp nz, DrawResult
+  ld a, 0
+  ld [wMSDraw], a
   ; draw plus/minus
   call DrawSign
 
+DrawResult:
+  ld a, [wResultDraw]
+  cp a, 1
+  jp nz, Main
+  ld a, 0
+  ld [wResultDraw], a
   ; draw result
   ld a, [wResult]
   call GetDigits
@@ -678,6 +730,36 @@ GetDigits:
   ld [wOnePlace], a
   ret
 
+; figures out which digit on top screen to redraw
+MarkForRedraw:
+  ld a, [wSelectedDigit]
+  cp a, 0
+  jp nz, .one
+  ld a, 1
+  ld [wChangeDraw], a
+  ld [wNDDraw], a
+  jp .knownret
+.one:
+  cp a, 1
+  jp nz, .two
+  ld a, 1
+  ld [wChangeDraw], a
+  ld [wDSDraw], a
+  jp .knownret
+.two:
+  cp a, 2
+  jp nz, .three
+  ld a, 1
+  ld [wChangeDraw], a
+  ld [wMSDraw], a
+  jp .knownret
+.three:
+  ld a, 1
+  ld [wChangeDraw], a
+  ld [wMDraw], a
+.knownret:
+  ret
+
 ; copy bytes from one area to another
 ; @param de: source
 ; @param hl: destination
@@ -743,6 +825,14 @@ wDiceSides: db
 wModifierSign: db
 wModifier: db
 wResult: db
+wChangeDraw: db ; set high if value changed and needs to be drawn
+wSDDraw: db
+wNDDraw: db
+wDSDraw: db
+wMSDraw: db
+wMDraw: db
+wArrowDraw: db
+wResultDraw: db
 
 SECTION "MathVariables", WRAM0
 randstate:: ds 4
