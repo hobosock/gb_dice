@@ -40,14 +40,6 @@ WaitVBlank:
 
 ; initialize global variables
   ld a, 0
-  ld [wChangeDraw], a
-  ld [wSDDraw], a
-  ld [wNDDraw], a
-  ld [wDSDraw], a
-  ld [wMSDraw], a
-  ld [wMDraw], a
-  ld [wArrowDraw], a
-  ld [wResultDraw], a
   ld [wFrameCounter], a
   ld [wInputRead], a
   ld [wSelectedDigit], a
@@ -56,6 +48,14 @@ WaitVBlank:
   ld [wModifier], a
   ld a, 1
   ld [wNumberDice], a
+  ld [wChangeDraw], a
+  ld [wSDDraw], a
+  ld [wNDDraw], a
+  ld [wDSDraw], a
+  ld [wMSDraw], a
+  ld [wMDraw], a
+  ld [wArrowDraw], a
+  ld [wResultDraw], a
   ld a, 6
   ld [wDiceSides], a
 
