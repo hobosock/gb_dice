@@ -1,6 +1,7 @@
 # rom builds should go in releases
 *.gb
 *.o
+*.sym
 
 # don't redistribute hardware.inc, get from it's repo
 hardware.inc
