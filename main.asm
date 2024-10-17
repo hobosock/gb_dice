@@ -937,6 +937,8 @@ PickRand:
 .regen:
   call rand ; make new numbers
   ld a, 0 ; reset counter
+  ld c, a
+  jp PickRand
 .knownret:
   ld b, a ; move random number
   ld a, c ; get counter back
